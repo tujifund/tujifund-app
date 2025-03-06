@@ -66,3 +66,11 @@ func HandleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("Welcome, %s! Your email is %s", session.Values["name"], session.Values["email"])
 }
+
+//implement logout
+func HandleLogout(w http.ResponseWriter,r *http.Request) {
+	session,_ := store.Get(r,"sessionname")
+	session.Options.MaxAge =-1
+	session.Save(r,w)
+	http.Redirect(w,r,"/login",http.StatusNotFound)
+}
