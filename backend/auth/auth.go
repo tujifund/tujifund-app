@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"encoding/json"
@@ -35,6 +35,7 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	token, err := googleOauthConfig.Exchange(r.Context(), code)
 	if err != nil {
 		http.Error(w, "failed to exchange token", http.StatusBadRequest)
+		return
 	}
 	// fetch user info from google
 	client := googleOauthConfig.Client(r.Context(), token)
@@ -48,29 +49,42 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Email string `json:"email"`
 		Name  string `json:"name"`
 	}
-	json.NewDecoder(resp.Body).Decode(&user)
+	
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		http.Error(w, "Failed to parse user info", http.StatusInternalServerError)
+		return
+	}
 	// create session
 	session, _ := store.Get(r, "sessionname")
 	session.Values["Email"] = user.Email
 	session.Values["Name"] = user.Name
-	session.Save(r, w)
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
 	// redirect to dashboard
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
 func HandleDashboard(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "sesionname")
-	if session.Values["email"] == nil {
+	session, _ := store.Get(r, "sessionname")
+	email, emailExists := session.Values["email"].(string)
+	name, nameExists := session.Values["name"].(string)
+
+	if !emailExists || !nameExists {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	fmt.Printf("Welcome, %s! Your email is %s", session.Values["name"], session.Values["email"])
+	fmt.Printf("Welcome, %s! Your email is %s",name,email)
 }
 
 //implement logout
 func HandleLogout(w http.ResponseWriter,r *http.Request) {
 	session,_ := store.Get(r,"sessionname")
 	session.Options.MaxAge =-1
-	session.Save(r,w)
-	http.Redirect(w,r,"/login",http.StatusNotFound)
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w,r,"/login",http.StatusSeeOther)
 }
