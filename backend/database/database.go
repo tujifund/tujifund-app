@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	 "github.com/google/uuid"
 
 	_ "modernc.org/sqlite" // Modern SQLite driver
 )
@@ -95,10 +96,9 @@ func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration tim
 	_, err := db.Exec(`
         INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at, last_activity, created_at)
         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `, generateUUID(), userID, token, ip, userAgent, time.Now().Add(duration))
+    `, uuid.NewString() , userID, token, ip, userAgent, time.Now().Add(duration))
 	return err
 }
-
 
 // IsValidSession checks if a session is still valid
 func IsValidSession(db *sql.DB, token string) (bool, string, error) {
@@ -137,7 +137,6 @@ func DeleteSession(db *sql.DB, token string) error {
 	_, err := db.Exec(`DELETE FROM sessions WHERE token = ?`, token)
 	return err
 }
-
 
 func CleanupExpiredSessions(db *sql.DB) {
 	_, err := db.Exec(`
