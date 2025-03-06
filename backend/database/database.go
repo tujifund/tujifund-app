@@ -98,3 +98,28 @@ func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration tim
     `, generateUUID(), userID, token, ip, userAgent, time.Now().Add(duration))
 	return err
 }
+
+// IsValidSession checks if a session is still valid
+func IsValidSession(db *sql.DB, token string) (bool, string, error) {
+	var userID string
+	var lastActivity, expiresAt time.Time
+
+	err := db.QueryRow(`
+        SELECT user_id, last_activity, expires_at FROM sessions WHERE token = ?
+    `, token).Scan(&userID, &lastActivity, &expiresAt)
+
+	if err == sql.ErrNoRows {
+		return false, "", nil
+	} else if err != nil {
+		return false, "", err
+	}
+
+	// Check if session has expired due to inactivity or timeout
+	if time.Since(lastActivity) > sessionTimeout || time.Now().After(expiresAt) {
+		DeleteSession(db, token)
+		return false, "", nil
+	}
+
+	return true, userID, nil
+}
+
