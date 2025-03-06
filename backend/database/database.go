@@ -129,6 +129,7 @@ func DeleteSession(db *sql.DB, token string) error {
 	return err
 }
 
+
 // UpdateSessionActivity updates last activity timestamp
 func UpdateSessionActivity(db *sql.DB, token string) error {
 	_, err := db.Exec(`
@@ -137,3 +138,13 @@ func UpdateSessionActivity(db *sql.DB, token string) error {
 	return err
 }
 
+// CleanupExpiredSessions runs periodically to delete inactive sessions
+func CleanupExpiredSessions(db *sql.DB) {
+	_, err := db.Exec(`
+        DELETE FROM sessions WHERE last_activity < DATETIME('now', '-30 minutes') 
+           OR expires_at < CURRENT_TIMESTAMP
+    `)
+	if err != nil {
+		log.Println("Error cleaning up expired sessions:", err)
+	}
+}
