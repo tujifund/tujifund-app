@@ -128,3 +128,12 @@ func DeleteSession(db *sql.DB, token string) error {
 	_, err := db.Exec(`DELETE FROM sessions WHERE token = ?`, token)
 	return err
 }
+
+// UpdateSessionActivity updates last activity timestamp
+func UpdateSessionActivity(db *sql.DB, token string) error {
+	_, err := db.Exec(`
+        UPDATE sessions SET last_activity = CURRENT_TIMESTAMP WHERE token = ?
+    `, token)
+	return err
+}
+
