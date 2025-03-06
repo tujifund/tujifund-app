@@ -123,3 +123,8 @@ func IsValidSession(db *sql.DB, token string) (bool, string, error) {
 	return true, userID, nil
 }
 
+// DeleteSession removes an expired session
+func DeleteSession(db *sql.DB, token string) error {
+	_, err := db.Exec(`DELETE FROM sessions WHERE token = ?`, token)
+	return err
+}
