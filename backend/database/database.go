@@ -99,6 +99,7 @@ func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration tim
 	return err
 }
 
+
 // IsValidSession checks if a session is still valid
 func IsValidSession(db *sql.DB, token string) (bool, string, error) {
 	var userID string
@@ -123,13 +124,6 @@ func IsValidSession(db *sql.DB, token string) (bool, string, error) {
 	return true, userID, nil
 }
 
-// DeleteSession removes an expired session
-func DeleteSession(db *sql.DB, token string) error {
-	_, err := db.Exec(`DELETE FROM sessions WHERE token = ?`, token)
-	return err
-}
-
-
 // UpdateSessionActivity updates last activity timestamp
 func UpdateSessionActivity(db *sql.DB, token string) error {
 	_, err := db.Exec(`
@@ -138,7 +132,13 @@ func UpdateSessionActivity(db *sql.DB, token string) error {
 	return err
 }
 
-// CleanupExpiredSessions runs periodically to delete inactive sessions
+// DeleteSession removes an expired session
+func DeleteSession(db *sql.DB, token string) error {
+	_, err := db.Exec(`DELETE FROM sessions WHERE token = ?`, token)
+	return err
+}
+
+
 func CleanupExpiredSessions(db *sql.DB) {
 	_, err := db.Exec(`
         DELETE FROM sessions WHERE last_activity < DATETIME('now', '-30 minutes') 
