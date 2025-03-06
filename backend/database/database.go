@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	_ "modernc.org/sqlite" // Modern SQLite driver
 )
@@ -23,10 +24,13 @@ type DBInstance struct {
 	Conf DBConfig
 }
 
+// Session timeout duration
+const sessionTimeout = 30 * time.Minute
+
 // NewDBInstance creates a new database connection
 func NewDBInstance(conf DBConfig) (*DBInstance, error) {
 	// Create the database directory if it doesn't exist
-	if err := os.MkdirAll(filepath.Dir(conf.DBName), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(conf.DBName), 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create database directory: %w", err)
 	}
 
@@ -84,4 +88,13 @@ func (dbi *DBInstance) Close() error {
 // GetDB returns the database instance
 func (dbi *DBInstance) GetDB() *sql.DB {
 	return dbi.DB
+}
+
+// CreateSession inserts a new session into the database
+func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration time.Duration) error {
+	_, err := db.Exec(`
+        INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at, last_activity, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `, generateUUID(), userID, token, ip, userAgent, time.Now().Add(duration))
+	return err
 }
