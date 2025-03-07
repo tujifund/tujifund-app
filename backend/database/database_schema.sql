@@ -4,6 +4,7 @@
 -- Users table to store user information
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
+    user_id TEXT UNIQUE NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
@@ -11,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name TEXT,
     phone_number TEXT,
     profile_image_url TEXT,
+    country TEXT,
     bio TEXT,
     is_verified INTEGER DEFAULT 0,
     role TEXT NOT NULL DEFAULT 'user',
