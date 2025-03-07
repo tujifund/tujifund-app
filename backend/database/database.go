@@ -26,7 +26,7 @@ type DBInstance struct {
 }
 
 // Session timeout duration
-const sessionTimeout = 30 * time.Minute
+const SessionTimeout = 30 * time.Minute
 
 // NewDBInstance creates a new database connection
 func NewDBInstance(conf DBConfig) (*DBInstance, error) {
@@ -92,12 +92,18 @@ func (dbi *DBInstance) GetDB() *sql.DB {
 }
 
 // CreateSession inserts a new session into the database
-func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration time.Duration) error {
+func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration time.Duration) (string,error) {
+	sessionID := uuid.NewString()
 	_, err := db.Exec(`
-        INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at, last_activity, created_at)
+        INSERT INTO sessions (id, user_id, token, i sessionID, err:= database.CreateSession(user.ID)
+		 if err != nil {
+			http.Error(w,"Failed to create session",http.StatusInternalServerError)
+			return
+		 }
+p_address, user_agent, expires_at, last_activity, created_at)
         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    `, uuid.NewString() , userID, token, ip, userAgent, time.Now().Add(duration))
-	return err
+    `, userID, token, ip, userAgent, time.Now().Add(duration))
+	return  sessionID, err
 }
 
 // IsValidSession checks if a session is still valid
@@ -116,7 +122,7 @@ func IsValidSession(db *sql.DB, token string) (bool, string, error) {
 	}
 
 	// Check if session has expired due to inactivity or timeout
-	if time.Since(lastActivity) > sessionTimeout || time.Now().After(expiresAt) {
+	if time.Since(lastActivity) > SessionTimeout || time.Now().After(expiresAt) {
 		DeleteSession(db, token)
 		return false, "", nil
 	}
