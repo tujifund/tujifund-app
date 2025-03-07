@@ -3,17 +3,18 @@
 
 -- Users table to store user information
 CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT UNIQUE NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    password_hash TEXT ,
     first_name TEXT,
     last_name TEXT,
     phone_number TEXT,
     profile_image_url TEXT,
     country TEXT,
     bio TEXT,
+    auth_provider TEXT DEFAULT 'none',
     is_verified INTEGER DEFAULT 0,
     role TEXT NOT NULL DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
