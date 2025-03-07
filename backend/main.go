@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"tujifund-app/backend/auth"
 	"tujifund-app/backend/database"
 
 	"golang.org/x/crypto/bcrypt"
@@ -63,6 +64,9 @@ func main() {
 	router.HandleFunc("/api/register", registerHandler(db)).Methods("POST")
 	router.HandleFunc("/api/login", loginHandler(db)).Methods("POST")
 	router.HandleFunc("/api/verify", verifyHandler(db)).Methods("POST")
+
+	router.HandleFunc("/auth/google/signin",auth.HandleGoogleLogin)
+	router.HandleFunc("/auth/callback", auth.HandleGoogleCallback)
 
 	// Start server with CORS handler
 	log.Println("Starting server on http://localhost:8080")
@@ -126,7 +130,7 @@ func registerHandler(db *database.DBInstance) http.HandlerFunc {
 		log.Printf("Registering user: %s, email: %s", user.Username, user.Email)
 
 		// Validate required fields
-		if user.Username == "" || user.Email == "" || user.Password == "" {
+		if user.Username == "" || user.Email == "" {
 			http.Error(w, "Username, email and password are required", http.StatusBadRequest)
 			return
 		}
@@ -144,7 +148,7 @@ func registerHandler(db *database.DBInstance) http.HandlerFunc {
 		// Simplified direct insert - avoid complex schema checks for now
 		_, err = db.GetDB().Exec(`
 			INSERT INTO users 
-			(id, username, email, password_hash, first_name, last_name, phone_number, country, is_verified) 
+			(user_id, username, email, password_hash, first_name, last_name, phone_number, country, is_verified) 
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			userID, user.Username, user.Email, string(hashedPassword),
 			user.FirstName, user.Surname, user.Phone, user.Country,
