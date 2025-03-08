@@ -100,7 +100,7 @@ func CreateSession(db *sql.DB, userID, token, ip, userAgent string, duration tim
 			http.Error(w,"Failed to create session",http.StatusInternalServerError)
 			return
 		 }
-p_address, user_agent, expires_at, last_activity, created_at)
+ip_address, user_agent, expires_at, last_activity, created_at)
         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `, userID, token, ip, userAgent, time.Now().Add(duration))
 	return  sessionID, err
