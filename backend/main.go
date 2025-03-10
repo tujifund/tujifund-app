@@ -63,6 +63,7 @@ func main() {
 	router.HandleFunc("/api/register", registerHandler(db)).Methods("POST")
 	router.HandleFunc("/api/login", loginHandler(db)).Methods("POST")
 	router.HandleFunc("/api/verify", verifyHandler(db)).Methods("POST")
+	router.HandleFunc("/api/protected", sessionMiddleware(db, protectedHandler)).Methods("GET")
 
 	// Start server with CORS handler
 	log.Println("Starting server on http://localhost:8080")
@@ -285,12 +286,27 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 			return
 		}
+         // Extract user agent
+		userAgent := r.UserAgent()
+
+		// Extract IP address
+		ip := r.RemoteAddr 
+		if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+			ip = strings.Split(forwarded, ",")[0]
+		}
+
+		sessionID, err := database.CreateSession(db.GetDB(), user.ID, tokenString,ip,userAgent, database.SessionTimeout)
+		if err != nil {
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
 
 		// Return success response with token and user info
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "Login successful",
 			"token":   tokenString,
+			"sessionId": sessionID,
 			"user": map[string]interface{}{
 				"id":          user.ID,
 				"username":    user.Username,
@@ -315,7 +331,6 @@ func verifyHandler(db *database.DBInstance) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		// Verify token
 		var userID string
 		err := db.GetDB().QueryRow(`
@@ -348,7 +363,45 @@ func verifyHandler(db *database.DBInstance) http.HandlerFunc {
 	}
 }
 
-// Helper function to generate verification token
 func generateToken() string {
-	return "random-token" // Replace with actual token generation
+	return "random-token" 
+}
+
+func sessionMiddleware(db *database.DBInstance,next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionID := r.Header.Get("X-Session-ID")
+		if sessionID == "" {
+			http.Error(w, "Session ID required", http.StatusUnauthorized)
+			return
+		}
+			valid, _ , err := database.IsValidSession(db.GetDB(), sessionID)
+			if err != nil {
+				http.Error(w, "Failed to validate session", http.StatusInternalServerError)
+				return
+			}
+			if !valid {
+				http.Error(w, "Invalid session", http.StatusUnauthorized)
+				return
+			}
+			if err := database.UpdateSessionActivity(db.GetDB(),sessionID); err != nil {
+				http.Error(w, "Failed to update session activity", http.StatusInternalServerError)
+				return
+			}
+
+		next.ServeHTTP(w, r)
+	}
+}
+
+
+func protectedHandler(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Access granted",
+		"userID":  userID,
+	})
 }
