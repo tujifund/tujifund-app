@@ -22,7 +22,7 @@ var googleOauthConfig = &oauth2.Config{
 }
 
 // Session store
-var store = sessions.NewCookieStore([]byte("super-secret-key"))
+var Store = sessions.NewCookieStore([]byte("super-secret-key"))
 
 func HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	Url := googleOauthConfig.AuthCodeURL("random-state-token")
@@ -58,7 +58,7 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// create session
-	session, _ := store.Get(r, "sessionname")
+	session, _ := Store.Get(r, "sessionname")
 	session.Values["Email"] = user.Email
 	session.Values["Name"] = user.Name
 	if err := session.Save(r, w); err != nil {
@@ -100,11 +100,11 @@ func HandleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect to dashboard
-	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "http://localhost:3000/dashboard", http.StatusSeeOther)
 }
 
 func HandleDashboard(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "sessionname")
+	session, _ := Store.Get(r, "sessionname")
 	email, emailExists := session.Values["email"].(string)
 	name, nameExists := session.Values["name"].(string)
 
@@ -117,7 +117,7 @@ func HandleDashboard(w http.ResponseWriter, r *http.Request) {
 
 // implement logout
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "sessionname")
+	session, _ := Store.Get(r, "sessionname")
 	session.Options.MaxAge = -1
 	if err := session.Save(r, w); err != nil {
 		http.Error(w, "Failed to save session", http.StatusInternalServerError)
