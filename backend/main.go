@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
 	"tujifund-app/backend/auth"
 	"tujifund-app/backend/database"
 
@@ -57,15 +58,15 @@ func main() {
 
 	// API endpoints
 	router.HandleFunc("/api/users", getUsersHandler(db)).Methods("GET")
-	//router.HandleFunc("/api/chamas", getChamasHandler(db)).Methods("GET")
+	// router.HandleFunc("/api/chamas", getChamasHandler(db)).Methods("GET")
 	// Add more endpoints as needed
 
 	// Add authentication endpoints
 	router.HandleFunc("/api/register", registerHandler(db)).Methods("POST")
 	router.HandleFunc("/api/login", loginHandler(db)).Methods("POST")
 	router.HandleFunc("/api/verify", verifyHandler(db)).Methods("POST")
-
-	router.HandleFunc("/auth/google/signin",auth.HandleGoogleLogin)
+	router.HandleFunc("/api/user/profile", HandleUserProfile(db)).Methods("GET")
+	router.HandleFunc("/auth/google/signin", auth.HandleGoogleLogin)
 	router.HandleFunc("/auth/callback", auth.HandleGoogleCallback)
 
 	// Start server with CORS handler
@@ -73,6 +74,44 @@ func main() {
 	log.Println("API endpoints available at http://localhost:8080/api/*")
 	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
+	}
+}
+
+// API handler for fetching user profile
+func HandleUserProfile(db *database.DBInstance) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := auth.Store.Get(r, "sessionname")
+		email := session.Values["Email"]
+		name := session.Values["Name"]
+
+		if email == nil || name == nil {
+			http.Error(w, "User not authenticated", http.StatusUnauthorized)
+			return
+		}
+
+		row := db.GetDB().QueryRow(`
+    		SELECT id, username, email 
+    		FROM users 
+    		WHERE email = ? AND username = ?`, email, name)
+		var id, username, dbEmail string
+		err := row.Scan(&id, &username, &dbEmail)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "User not Found", http.StatusInternalServerError)
+				return
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		// Respond with user data
+		user := map[string]string{
+			"id": id,
+			"email": dbEmail,
+			"name":  username,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(user)
 	}
 }
 
@@ -154,7 +193,6 @@ func registerHandler(db *database.DBInstance) http.HandlerFunc {
 			user.FirstName, user.Surname, user.Phone, user.Country,
 			1, // Set is_verified to 1 (true) for development
 		)
-
 		if err != nil {
 			log.Printf("Database error during registration: %v", err)
 
@@ -211,7 +249,6 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 			SELECT COUNT(*) FROM pragma_table_info('users') 
 			WHERE name = 'is_verified'
 		`).Scan(&hasIsVerified)
-
 		if err != nil {
 			http.Error(w, "Failed to check schema: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -326,7 +363,6 @@ func verifyHandler(db *database.DBInstance) http.HandlerFunc {
 			SELECT id FROM users WHERE verification_token = ?`,
 			request.Token,
 		).Scan(&userID)
-
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Invalid token", http.StatusNotFound)
@@ -341,7 +377,6 @@ func verifyHandler(db *database.DBInstance) http.HandlerFunc {
 			UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = ?`,
 			userID,
 		)
-
 		if err != nil {
 			http.Error(w, "Failed to verify user", http.StatusInternalServerError)
 			return
