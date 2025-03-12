@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect,useState } from 'react';
 import {
   Box,
   Grid,
@@ -37,36 +37,75 @@ const Dashboard = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [chamas, setChamas] = useState([]); 
+ 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        //  check for session cookie
+        const  response = await fetch('http://localhost:8080/api/user/profile', {
+        credentials: 'include',});
+
+        if (!response.ok) {
+          throw new Error('User not authenticated')
+        }
+
+        const userData = await response.json();
+        setUserData(userData);
+        console.log(userData);
+
+      } catch(error){
+        console.error(error);
+        navigate('/login');
+      }
+    };
+
+    fetchUserData();
+  },[navigate]);
   // Mock data for chamas (similar to ChamasListPage)
-  const chamas = [
-    {
-      id: 1,
-      name: 'Intel kwote',
-      members: 15,
-      balance: 'KES 250,000',
-      nextMeeting: '2025-01-20',
-      type: 'Investment',
-      avatar: '/path/to/avatar1.jpg',
-    },
-    {
-      id: 2,
-      name: 'Welfare Kwetu',
-      members: 20,
-      balance: 'KES 180,000',
-      nextMeeting: '2025-01-18',
-      type: 'Welfare',
-      avatar: '/badge1.webp',
-    },
-    {
-      id: 3,
-      name: 'Jamii Savings',
-      members: 12,
-      balance: 'KES 320,000',
-      nextMeeting: '2025-01-25',
-      type: 'Business',
-      avatar: '/path/to/avatar3.jpg',
-    },
-  ];
+  useEffect(() => {
+    // Assuming you would fetch chamas from the backend too
+    const fetchChamas = async () => {
+      // Simulating an API call to fetch chamas
+      const chamasData = [
+        {
+          id: 1,
+          name: 'Intel Kwote',
+          members: 15,
+          balance: 'KES 250,000',
+          nextMeeting: '2025-01-20',
+          type: 'Investment',
+          avatar: '/path/to/avatar1.jpg',
+        },
+        {
+          id: 2,
+          name: 'Welfare Kwetu',
+          members: 20,
+          balance: 'KES 180,000',
+          nextMeeting: '2025-01-18',
+          type: 'Welfare',
+          avatar: '/badge1.webp',
+        },
+        {
+          id: 3,
+          name: 'Jamii Savings',
+          members: 12,
+          balance: 'KES 320,000',
+          nextMeeting: '2025-01-25',
+          type: 'Business',
+          avatar: '/path/to/avatar3.jpg',
+        },
+      ];
+
+      setChamas(chamasData);
+    };
+
+    fetchChamas();
+  }, []);
+
 
   const handleChamaClick = (chamaId) => {
     navigate(`/ChamaDashboard/${chamaId}/home`);

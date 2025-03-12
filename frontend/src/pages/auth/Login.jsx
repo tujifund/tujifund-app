@@ -36,6 +36,11 @@ const Login = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    /// make an api call to localhost:8080/auth/google/signin
+    window.location.href = 'http://localhost:8080/auth/google/signin';
+  }
+
   return (
     <Container component="main" maxWidth="xs">
       <Box
@@ -103,6 +108,16 @@ const Login = () => {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <button 
+            fullWidth variant="outlined"
+            startIcon={<img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="google" />}
+            sx={{ mt: 1, mb: 2 }}
+            onClick={handleGoogleSignIn}
+            > Sign in with Google
+            </button>
+
+
             <Box sx={{ textAlign: 'center' }}>
               <Link to="/auth/forgot-password" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="primary">
