@@ -1,4 +1,4 @@
--- Tujifund/ChamaVault Database Schema
+-- Tujifund/TujiFund Database Schema
 -- A comprehensive schema for managing group savings and investments
 
 -- Users table to store user information

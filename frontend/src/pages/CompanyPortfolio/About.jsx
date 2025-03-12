@@ -79,7 +79,7 @@ const About = () => {
     {
       year: '2023',
       title: 'Platform Launch',
-      description: 'Successfully launched ChamaVault platform, revolutionizing Chama management in Kenya.'
+      description: 'Successfully launched TujiFund platform, revolutionizing Chama management in Kenya.'
     },
     {
       year: '2024',
@@ -99,7 +99,7 @@ const About = () => {
         {/* Hero Section */}
         <Box sx={{ my: 8, textAlign: 'center' }}>
           <Typography variant="h2" component="h1" gutterBottom>
-            About ChamaVault
+            About TujiFund
           </Typography>
           <Typography variant="h5" color="text.secondary" paragraph>
             Empowering Chamas Through Financial Innovation
@@ -228,7 +228,7 @@ const About = () => {
             Our Team
           </Typography>
           <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 6 }}>
-            Meet the experts behind ChamaVault
+            Meet the experts behind TujiFund
           </Typography>
           <Grid container spacing={4}>
             {teamMembers.map((member, index) => (

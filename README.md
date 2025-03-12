@@ -1,7 +1,7 @@
-# ChamaVault Frontend Documentation
+# TujiFund Frontend Documentation
 
 ## Project Overview
-ChamaVault is a web application designed for managing and interacting with Chamas (community savings groups). The frontend is built using React and Vite, providing a responsive and modern user interface.
+TujiFund is a web application designed for managing and interacting with Chamas (community savings groups). The frontend is built using React and Vite, providing a responsive and modern user interface.
 
 ## Folder Structure
 ```
@@ -52,7 +52,7 @@ The application uses Material-UI for consistent styling and responsive design. C
 - Improve performance and accessibility features.
 
 ## Backend Overview
-The backend for ChamaVault is designed to handle data management, user authentication, and API services to support the frontend application. It will serve as the bridge between the database and the frontend, providing necessary data and functionalities.
+The backend for TujiFund is designed to handle data management, user authentication, and API services to support the frontend application. It will serve as the bridge between the database and the frontend, providing necessary data and functionalities.
 
 ## Technology Stack
 - **Node.js**: JavaScript runtime for building the backend.

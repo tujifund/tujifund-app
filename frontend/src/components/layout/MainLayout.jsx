@@ -209,7 +209,7 @@ const MainLayout = () => {
     <Box>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          ChamaVault
+          TujiFund
         </Typography>
       </Toolbar>
       <Divider />
@@ -303,7 +303,7 @@ const MainLayout = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            ChamaVault
+            TujiFund
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: 'flex', gap: 1 }}>

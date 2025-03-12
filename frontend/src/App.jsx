@@ -47,7 +47,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import Register from './pages/auth/Register';
 import Terms from './pages/auth/Terms';
 import PrivacyPolicy from './pages/auth/PrivacyPolicy';
-import ChamaCke from './pages/CompanyPortfolio/ChamaVault';
+import ChamaCke from './pages/CompanyPortfolio/TujiFund';
 import About from './pages/CompanyPortfolio/About';
 import Services from './pages/CompanyPortfolio/Services';
 import Blog from './pages/CompanyPortfolio/Blog';
@@ -117,7 +117,7 @@ function App() {
             <Route path="/services/meeting-management" element={<MeetingManagement />} />
 
             {/* User Dashboard Routes */}
-            <Route path="/dashboard" element={<MainLayout />}>
+            {/* <Route path="/dashboard" element={<MainLayout />}> */}
               <Route index element={<Dashboard />} />
               <Route path="chamas" element={<ChamasListPage />} />
               <Route path="create-chama" element={<CreateChama />} />

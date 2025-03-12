@@ -133,7 +133,7 @@ function AdminDashboard() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            ChamaVault- AdminDashboard
+            TujiFund- AdminDashboard
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <IconButton color="inherit" onClick={handleOpenNotifications}>

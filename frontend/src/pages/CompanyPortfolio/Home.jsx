@@ -130,7 +130,7 @@ const Home = () => {
       <Container maxWidth="lg">
         <Box sx={{ mb: 8 }}>
           <Typography variant="h3" align="center" gutterBottom>
-            Why Choose ChamaVault?
+            Why Choose TujiFund?
           </Typography>
           <Typography variant="h6" align="center" color="text.secondary" paragraph>
             Experience the benefits of modern financial management

@@ -6,18 +6,18 @@ const Terms = () => {
     <Container component="main" maxWidth="md">
       <Box sx={{ marginTop: 8, padding: 4, border: '1px solid #ccc', borderRadius: '8px' }}>
         <Typography variant="h4" gutterBottom>
-          Terms and Conditions for ChamaVault
+          Terms and Conditions for TujiFund
         </Typography>
 
         <Typography variant="body1" paragraph>
-          Welcome to ChamaVault, a platform designed to facilitate group savings and investments. By using our services, you agree to the following terms and conditions. Please read them carefully.
+          Welcome to TujiFund, a platform designed to facilitate group savings and investments. By using our services, you agree to the following terms and conditions. Please read them carefully.
         </Typography>
 
         <Typography variant="h6" gutterBottom>
           1. Acceptance of Terms
         </Typography>
         <Typography variant="body1" paragraph>
-          By accessing and using ChamaVault, you accept and agree to be bound by these terms. If you do not agree to these terms, you should not use our services. We may modify these terms from time to time, and your continued use of the services constitutes acceptance of the modified terms. It is your responsibility to review these terms periodically for updates.
+          By accessing and using TujiFund, you accept and agree to be bound by these terms. If you do not agree to these terms, you should not use our services. We may modify these terms from time to time, and your continued use of the services constitutes acceptance of the modified terms. It is your responsibility to review these terms periodically for updates.
         </Typography>
 
         <Typography variant="h6" gutterBottom>
@@ -35,10 +35,10 @@ const Terms = () => {
         </Typography>
 
         <Typography variant="h6" gutterBottom>
-          4. Purpose of ChamaVault
+          4. Purpose of TujiFund
         </Typography>
         <Typography variant="body1" paragraph>
-          ChamaVault is designed to help users manage their group savings and investments effectively. Users can create groups, set savings goals, and track contributions. By participating in ChamaVault, you agree to use the platform responsibly and for its intended purpose. Misuse of the platform may result in account suspension or termination.
+          TujiFund is designed to help users manage their group savings and investments effectively. Users can create groups, set savings goals, and track contributions. By participating in TujiFund, you agree to use the platform responsibly and for its intended purpose. Misuse of the platform may result in account suspension or termination.
         </Typography>
 
         <Typography variant="h6" gutterBottom>
@@ -80,11 +80,11 @@ const Terms = () => {
           10. Contact Information
         </Typography>
         <Typography variant="body1" paragraph>
-          If you have any questions about these terms, please contact us at support@example.com. We encourage you to reach out with any concerns or inquiries regarding your rights and responsibilities while using ChamaVault.
+          If you have any questions about these terms, please contact us at support@example.com. We encourage you to reach out with any concerns or inquiries regarding your rights and responsibilities while using TujiFund.
         </Typography>
 
         <Typography variant="body1" paragraph>
-          Thank you for using ChamaVault!
+          Thank you for using TujiFund!
         </Typography>
       </Box>
     </Container>

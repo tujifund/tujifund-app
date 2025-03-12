@@ -80,7 +80,7 @@ const Layout = ({ children }) => {
                 textDecoration: 'none'
               }}
             >
-              ChamaVault
+              TujiFund
             </Typography>
 
             {isMobile ? (
@@ -213,7 +213,7 @@ const Layout = ({ children }) => {
             {/* Company Info */}
             <Grid item xs={12} md={4}>
               <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }} gutterBottom>
-                ChamaVault
+                TujiFund
               </Typography>
               <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }} paragraph>
                 Empowering Chamas with innovative financial management solutions. Join us in revolutionizing group savings and investments.
@@ -413,7 +413,7 @@ const Layout = ({ children }) => {
             gap: 2,
           }}>
             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              &copy; {new Date().getFullYear()} ChamaVault. All rights reserved.
+              &copy; {new Date().getFullYear()} TujiFund. All rights reserved.
             </Typography>
             <Stack direction="row" spacing={3}>
               <Button

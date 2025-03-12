@@ -39,7 +39,7 @@ const Sidebar = () => {
     <Box sx={{ overflow: 'auto' }}>
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="h6" color="primary">
-          ChamaVault
+          TujiFund
         </Typography>
       </Box>
       <Divider />

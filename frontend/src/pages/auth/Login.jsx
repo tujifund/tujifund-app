@@ -61,7 +61,7 @@ const Login = () => {
             width: '100%',
           }}
         >  <Typography component="h1" variant="h4" sx={{ mb: 3 }}>
-            ChamaVault
+            TujiFund
           </Typography>
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
             Sign In

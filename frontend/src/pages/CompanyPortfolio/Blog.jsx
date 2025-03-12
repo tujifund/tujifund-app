@@ -69,7 +69,7 @@ const Blog = () => {
         {/* Hero Section */}
         <Box sx={{ my: 8, textAlign: 'center' }}>
           <Typography variant="h2" component="h1" gutterBottom>
-            ChamaVault Blog
+            TujiFund Blog
           </Typography>
           <Typography variant="h5" color="text.secondary" paragraph>
             Insights and Updates from the World of Chama Finance

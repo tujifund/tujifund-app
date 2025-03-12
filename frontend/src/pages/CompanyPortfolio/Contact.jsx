@@ -247,7 +247,7 @@ const Contact = () => {
                     allowFullScreen=""
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="ChamaVault Location"
+                    title="TujiFund Location"
                   />
                 </Box>
               </Paper>

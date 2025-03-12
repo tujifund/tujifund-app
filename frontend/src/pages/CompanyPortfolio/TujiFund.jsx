@@ -81,7 +81,7 @@ const ChamaCke = () => {
               component="div"
               sx={{ flexGrow: 1, color: 'primary.main', fontWeight: 'bold' }}
             >
-              ChamaVault
+              TujiFund
             </Typography>
 
             {isMobile ? (
@@ -198,7 +198,7 @@ const ChamaCke = () => {
         <Box sx={{ py: 8, backgroundColor: 'background.paper' }}>
           <Container maxWidth="lg">
             <Typography variant="h3" component="h2" textAlign="center" gutterBottom>
-              Why Choose ChamaVault?
+              Why Choose TujiFund?
             </Typography>
             <Grid container spacing={4} sx={{ mt: 4 }}>
               {features.map((feature, index) => (
@@ -376,7 +376,7 @@ const ChamaCke = () => {
               Ready to Get Started?
             </Typography>
             <Typography variant="h6" color="text.secondary" paragraph>
-              Join thousands of successful Chamas already using ChamaVault
+              Join thousands of successful Chamas already using TujiFund
             </Typography>
             <Button 
               variant="contained" 
@@ -438,7 +438,7 @@ const ChamaCke = () => {
               {/* Company Info */}
               <Grid item xs={12} md={4}>
                 <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }} gutterBottom>
-                  ChamaVault
+                  TujiFund
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }} paragraph>
                   Empowering Chamas with innovative financial management solutions. Join us in revolutionizing group savings and investments.
@@ -647,7 +647,7 @@ const ChamaCke = () => {
                   color: 'rgba(255, 255, 255, 0.7)',
                 }}
               >
-                {new Date().getFullYear()} ChamaVault. All rights reserved.
+                {new Date().getFullYear()} TujiFund. All rights reserved.
               </Typography>
               <Stack 
                 direction="row" 
