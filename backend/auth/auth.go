@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
@@ -14,15 +15,25 @@ import (
 )
 
 var googleOauthConfig = &oauth2.Config{
-	ClientID:     "235545557579-1il82tci3v7nu4hh8sjhv6tqsk043kfg.apps.googleusercontent.com",
-	ClientSecret: "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",
-	RedirectURL:  "http://localhost:8080/auth/callback",
+	ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+	ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+	RedirectURL:  redirectURL,
 	Scopes:       []string{"email", "profile"},
 	Endpoint:     google.Endpoint,
 }
 
 // Session store
 var Store = sessions.NewCookieStore([]byte("super-secret-key"))
+var redirectURL string
+func init() {
+	// check if runninng in production or locally
+	if os.Getenv("RENDER") == "true" {
+		redirectURL = "http://https://tujifund-app.onrender.com/auth/callback"
+	} else {
+		redirectURL = "http://localhost:8080/auth/callback"
+	}
+
+}
 
 func HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	Url := googleOauthConfig.AuthCodeURL("random-state-token")
