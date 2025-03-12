@@ -117,7 +117,7 @@ function App() {
             <Route path="/services/meeting-management" element={<MeetingManagement />} />
 
             {/* User Dashboard Routes */}
-            {/* <Route path="/dashboard" element={<MainLayout />}> */}
+            <Route path="/dashboard" element={<MainLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="chamas" element={<ChamasListPage />} />
               <Route path="create-chama" element={<CreateChama />} />
