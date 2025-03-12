@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
+
+const port = "8080"
 
 func main() {
 	// Configure SQLite database
@@ -71,9 +74,9 @@ func main() {
 	router.HandleFunc("/api/protected", sessionMiddleware(db, protectedHandler)).Methods("GET")
 
 	// Start server with CORS handler
-	log.Println("Starting server on http://localhost:8080")
-	log.Println("API endpoints available at http://localhost:8080/api/*")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
+	log.Printf("Starting server on http://localhost:%s\n", port)
+	log.Printf("API endpoints available at http://localhost:%s/api/*\n", port)
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
@@ -107,7 +110,7 @@ func HandleUserProfile(db *database.DBInstance) http.HandlerFunc {
 		}
 		// Respond with user data
 		user := map[string]string{
-			"id": id,
+			"id":    id,
 			"email": dbEmail,
 			"name":  username,
 		}
@@ -150,7 +153,9 @@ func getUsersHandler(db *database.DBInstance) http.HandlerFunc {
 
 // Register handler
 func registerHandler(db *database.DBInstance) http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		var user struct {
 			Username  string `json:"username"`
 			Email     string `json:"email"`
@@ -166,32 +171,34 @@ func registerHandler(db *database.DBInstance) http.HandlerFunc {
 			return
 		}
 
-		// Log received data for debugging
 		log.Printf("Registering user: %s, email: %s", user.Username, user.Email)
 
 		// Validate required fields
-		if user.Username == "" || user.Email == "" {
-			http.Error(w, "Username, email and password are required", http.StatusBadRequest)
+		if user.Username == "" || user.Email == "" || (user.Password == "" && r.Header.Get("X-Google-Auth") != "true") {
+			http.Error(w, "Username, email and password are required (unless using Google auth)", http.StatusBadRequest)
 			return
 		}
 
-		// Hash password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if err != nil {
-			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
-			return
-		}
-
-		// Generate a unique ID for the user
 		userID := generateUserID()
+		// Generate a unique ID for the user
+		passwordHash := ""
+		// Hash password
+		if user.Password != "" {
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+			if err != nil {
+				log.Printf("Error hashing password: %v", err)
+				http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+				return
+			}
+			passwordHash = string(hashedPassword)
+		}
 
 		// Simplified direct insert - avoid complex schema checks for now
-		_, err = db.GetDB().Exec(`
+		_, err := db.GetDB().Exec(`
 			INSERT INTO users 
 			(user_id, username, email, password_hash, first_name, last_name, phone_number, country, is_verified) 
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			userID, user.Username, user.Email, string(hashedPassword),
-			user.FirstName, user.Surname, user.Phone, user.Country,
+			userID, user.Username, user.Email, passwordHash, user.FirstName, user.Surname, user.Phone, user.Country,
 			1, // Set is_verified to 1 (true) for development
 		)
 		if err != nil {
@@ -205,12 +212,38 @@ func registerHandler(db *database.DBInstance) http.HandlerFunc {
 			return
 		}
 
+		// Create session
+		session, _ := auth.Store.Get(r, "sessionname")
+		session.Values["Email"] = user.Email
+		session.Values["Name"] = user.Username
+		if err := session.Save(r, w); err != nil {
+			log.Printf("Failed to session: %v", err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		// Generate JWT token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"userId":   userID,
+			"email":    user.Email,
+			"username": user.Username,
+			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+		tokenString, err := token.SignedString([]byte(os.Getenv("GOOGLE_CLIENT_SECRET")))
+		if err != nil {
+			log.Printf("Failed to generate token: %v", err)
+			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+			return
+		}
+
 		// Return success response
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "User registered successfully",
 			"userId":  userID,
+			"token":   tokenString,
 		})
 	}
 }
@@ -327,16 +360,16 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 			return
 		}
-         // Extract user agent
+		// Extract user agent
 		userAgent := r.UserAgent()
 
 		// Extract IP address
-		ip := r.RemoteAddr 
+		ip := r.RemoteAddr
 		if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
 			ip = strings.Split(forwarded, ",")[0]
 		}
 
-		sessionID, err := database.CreateSession(db.GetDB(), user.ID, tokenString,ip,userAgent, database.SessionTimeout)
+		sessionID, err := database.CreateSession(db.GetDB(), user.ID, tokenString, ip, userAgent, database.SessionTimeout)
 		if err != nil {
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -345,8 +378,8 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 		// Return success response with token and user info
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"message": "Login successful",
-			"token":   tokenString,
+			"message":   "Login successful",
+			"token":     tokenString,
 			"sessionId": sessionID,
 			"user": map[string]interface{}{
 				"id":          user.ID,
@@ -403,34 +436,33 @@ func verifyHandler(db *database.DBInstance) http.HandlerFunc {
 }
 
 func generateToken() string {
-	return "random-token" 
+	return "random-token"
 }
 
-func sessionMiddleware(db *database.DBInstance,next http.HandlerFunc) http.HandlerFunc {
+func sessionMiddleware(db *database.DBInstance, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionID := r.Header.Get("X-Session-ID")
 		if sessionID == "" {
 			http.Error(w, "Session ID required", http.StatusUnauthorized)
 			return
 		}
-			valid, _ , err := database.IsValidSession(db.GetDB(), sessionID)
-			if err != nil {
-				http.Error(w, "Failed to validate session", http.StatusInternalServerError)
-				return
-			}
-			if !valid {
-				http.Error(w, "Invalid session", http.StatusUnauthorized)
-				return
-			}
-			if err := database.UpdateSessionActivity(db.GetDB(),sessionID); err != nil {
-				http.Error(w, "Failed to update session activity", http.StatusInternalServerError)
-				return
-			}
+		valid, _, err := database.IsValidSession(db.GetDB(), sessionID)
+		if err != nil {
+			http.Error(w, "Failed to validate session", http.StatusInternalServerError)
+			return
+		}
+		if !valid {
+			http.Error(w, "Invalid session", http.StatusUnauthorized)
+			return
+		}
+		if err := database.UpdateSessionActivity(db.GetDB(), sessionID); err != nil {
+			http.Error(w, "Failed to update session activity", http.StatusInternalServerError)
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	}
 }
-
 
 func protectedHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(string)
