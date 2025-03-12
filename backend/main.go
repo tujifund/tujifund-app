@@ -277,60 +277,28 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 			return
 		}
 
-		// Check if is_verified column exists
-		var hasIsVerified bool
-		err := db.GetDB().QueryRow(`
-			SELECT COUNT(*) FROM pragma_table_info('users') 
-			WHERE name = 'is_verified'
-		`).Scan(&hasIsVerified)
-		if err != nil {
-			http.Error(w, "Failed to check schema: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		// Get user from database
 		var user struct {
 			ID           string
 			Username     string
 			Email        string
 			PasswordHash string
-			FirstName    string
-			LastName     string
-			PhoneNumber  string
-			Country      string
 			IsVerified   bool
 		}
 
-		var queryFields string
-		if hasIsVerified {
-			queryFields = "id, username, email, password_hash, first_name, last_name, phone_number, country, is_verified"
-		} else {
-			queryFields = "id, username, email, password_hash, first_name, last_name, phone_number, country"
-		}
+		
 
-		var row *sql.Row
-		if hasIsVerified {
-			row = db.GetDB().QueryRow(`
-				SELECT `+queryFields+` FROM users WHERE email = ?`,
+			err := db.GetDB().QueryRow(`
+				SELECT id,username, email, password_hash, is_verified FROM users WHERE email = ?`,
 				credentials.Email,
-			)
-			err = row.Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Country, &user.IsVerified)
-		} else {
-			row = db.GetDB().QueryRow(`
-				SELECT `+queryFields+` FROM users WHERE email = ?`,
-				credentials.Email,
-			)
-			err = row.Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Country)
-
-			// Assume verified if column doesn't exist
-			user.IsVerified = true
-		}
+			).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.IsVerified)
 
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			} else {
-				http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+				log.Printf("Database error: %v", err)
+				http.Error(w, "Server error", http.StatusInternalServerError)
 			}
 			return
 		}
@@ -342,7 +310,7 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 		}
 
 		// Only check verification if the column exists
-		if hasIsVerified && !user.IsVerified {
+		if user.IsVerified == false {
 			http.Error(w, "Account not verified", http.StatusForbidden)
 			return
 		}
@@ -355,40 +323,22 @@ func loginHandler(db *database.DBInstance) http.HandlerFunc {
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		})
 
-		tokenString, err := token.SignedString([]byte("your-secret-key"))
+		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRECT")))
 		if err != nil {
+			log.Printf("Failed to generate token: %v", err)
 			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 			return
 		}
-		// Extract user agent
-		userAgent := r.UserAgent()
-
-		// Extract IP address
-		ip := r.RemoteAddr
-		if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
-			ip = strings.Split(forwarded, ",")[0]
-		}
-
-		sessionID, err := database.CreateSession(db.GetDB(), user.ID, tokenString, ip, userAgent, database.SessionTimeout)
-		if err != nil {
-			http.Error(w, "Failed to create session", http.StatusInternalServerError)
-			return
-		}
-
+		
 		// Return success response with token and user info
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message":   "Login successful",
 			"token":     tokenString,
-			"sessionId": sessionID,
-			"user": map[string]interface{}{
+			"user": map[string]string{
 				"id":          user.ID,
 				"username":    user.Username,
 				"email":       user.Email,
-				"firstName":   user.FirstName,
-				"lastName":    user.LastName,
-				"phoneNumber": user.PhoneNumber,
-				"country":     user.Country,
 			},
 		})
 	}
