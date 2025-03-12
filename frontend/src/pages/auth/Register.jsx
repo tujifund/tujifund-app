@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Box, Button, TextField, Typography, Container, Paper, Alert, Select, MenuItem, InputLabel, FormControl, InputAdornment, FormControlLabel, Checkbox } from '@mui/material';
 
 const countryCodes = [
@@ -233,14 +234,30 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('')
+    setLoading(true);
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      setLoading(false)
+      return;
+    }
+
     try {
-      setError('');
-      setLoading(true);
-      // Simulate login success
+      const response = await axios.post('http://localhost:8080/api/register',{
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        surname: formData.surname,
+        phone: '${countryCode}${formData.phone}',
+        country: formData.country,
+      });
+      localStorage.setItem('token', response.data.token); // storing token
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to sign in. Please check your credentials.');
-      console.error('Login error:', err);
+      setError( err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
@@ -254,15 +271,15 @@ const Register = () => {
             Chama Vault
           </Typography>
           <br />
-          <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
+          <Typography variant="h5" sx={{ mb: 3 }}>
             Create Account
           </Typography>
 
-          {error && (
+          {error &&
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
             </Alert>
-          )}
+          }
 
           <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <TextField margin="normal" required fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} />
@@ -311,10 +328,10 @@ const Register = () => {
               }
             />
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} disabled={!formData.agreedToTerms || loading}>
-              Create Account
+             {loading ? 'Registering...' : 'Create Account'}
             </Button>
             <Box sx={{ textAlign: 'center' }}>
-              <Link to="/login" style={{ textDecoration: 'none' }}>
+              <Link to="/login">
                 <Typography variant="body2" color="primary">
                   Already have an account? Log In
                 </Typography>
